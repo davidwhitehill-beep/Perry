@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 const people = [
   {
     name: "Mara Vale",
@@ -66,7 +68,7 @@ const walks = [
 
 const formClass = "min-h-10 rounded border border-ink bg-white/75 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-sea";
 
-function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
+function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
   return (
     <section className="py-8" id={title.toLowerCase().replaceAll(" ", "-")}> 
       <p className="mb-2 text-xs font-black uppercase text-route">{eyebrow}</p>
@@ -78,11 +80,11 @@ function Section({ eyebrow, title, children }: { eyebrow: string; title: string;
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="grid gap-1 text-sm font-bold"><span>{label}</span>{children}</label>;
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({ title, children }: { title: string; children: ReactNode }) {
   return <div className="field-card p-4"><h3 className="mb-3 border-b border-ink pb-2 text-lg font-black uppercase">{title}</h3>{children}</div>;
 }
 
