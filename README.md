@@ -11,6 +11,14 @@ This MVP includes:
 - Supabase schema and starter RLS policies
 - AI proposal draft API route with a deterministic fallback
 
+## Deploy on Vercel
+
+Import this repository as a Next.js project. Vercel can use the default settings:
+
+- Build command: `npm run build`
+- Install command: `npm install`
+- Output directory: leave blank
+
 ## Run locally
 
 ```bash
