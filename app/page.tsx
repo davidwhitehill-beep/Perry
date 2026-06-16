@@ -69,8 +69,10 @@ const walks = [
 const formClass = "min-h-10 rounded border border-ink bg-white/75 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-sea";
 
 function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
+  const sectionId = title.toLowerCase().replace(/\s+/g, "-");
+
   return (
-    <section className="py-8" id={title.toLowerCase().replaceAll(" ", "-")}> 
+    <section className="py-8" id={sectionId}>
       <p className="mb-2 text-xs font-black uppercase text-route">{eyebrow}</p>
       <div className="border-t-2 border-ink pt-3">
         <h2 className="text-3xl font-black leading-tight sm:text-4xl">{title}</h2>
