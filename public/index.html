@@ -4,55 +4,250 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Perry</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <style>
-    :root { --paper:#f4eddc; --ink:#1d2520; --route:#c24b36; --sea:#1f6f78; --ochre:#d8a646; --muted:#687064; }
-    * { box-sizing: border-box; }
+    :root { --paper:#f4eddc; --paper-deep:#e9dcc5; --ink:#1d2520; --route:#c24b36; --sea:#1f6f78; --ochre:#d8a646; --muted:#687064; --white:#fffaf0; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scroll-padding-top:94px; }
     body { margin:0; background:linear-gradient(90deg,rgba(29,37,32,.035) 1px,transparent 1px) 0 0/32px 32px,linear-gradient(rgba(29,37,32,.035) 1px,transparent 1px) 0 0/32px 32px,var(--paper); color:var(--ink); font-family:"Trebuchet MS",Arial,sans-serif; }
-    main { max-width:1180px; margin:0 auto; padding:20px; }
-    header { display:flex; justify-content:space-between; gap:16px; align-items:flex-end; border-bottom:2px solid var(--ink); padding-bottom:16px; flex-wrap:wrap; }
-    .brand { border:2px solid var(--ink); background:var(--route); color:white; padding:8px 12px; font-size:28px; font-weight:900; box-shadow:3px 3px 0 rgba(29,37,32,.25); }
-    nav { display:flex; gap:8px; flex-wrap:wrap; font-size:14px; font-weight:900; }
+    main { max-width:1180px; margin:0 auto; padding:0 20px 28px; }
+    header { position:sticky; top:0; z-index:1000; display:flex; justify-content:space-between; gap:16px; align-items:center; border-bottom:2px solid var(--ink); padding:12px 20px; margin:0 -20px; background:rgba(244,237,220,.97); backdrop-filter:blur(8px); flex-wrap:wrap; }
+    .brand { border:2px solid var(--ink); background:var(--route); color:white; padding:8px 12px; font-size:28px; font-weight:900; line-height:1; box-shadow:3px 3px 0 rgba(29,37,32,.25); }
+    .header-tools { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    nav { display:flex; gap:6px; flex-wrap:wrap; font-size:14px; font-weight:900; }
     a { color:inherit; text-decoration:none; }
-    nav a, .button { border:1px solid var(--ink); background:rgba(255,255,255,.7); padding:10px 12px; border-radius:5px; font-weight:900; display:inline-block; }
-    .hero { min-height:70vh; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; padding:40px 0; }
+    nav a,.button { border:1px solid var(--ink); background:rgba(255,255,255,.72); padding:9px 11px; border-radius:5px; font-weight:900; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+    nav a:hover,.button:hover { background:rgba(216,166,70,.35); }
+    .role-switch { display:flex; border:1px solid var(--ink); border-radius:5px; overflow:hidden; background:white; }
+    .role-switch button { border:0; border-right:1px solid var(--ink); padding:9px 11px; background:white; font-weight:900; cursor:pointer; }
+    .role-switch button:last-child { border-right:0; }
+    .role-switch button.active { background:var(--ochre); }
+    .hero { min-height:68vh; display:grid; grid-template-columns:1.02fr .98fr; gap:40px; align-items:center; padding:38px 0; }
     h1 { font-size:76px; line-height:.9; margin:16px 0; }
     h2 { font-size:38px; border-top:2px solid var(--ink); padding-top:12px; margin:0 0 20px; }
     h3 { margin:0 0 12px; text-transform:uppercase; border-bottom:1px solid var(--ink); padding-bottom:8px; }
     p { line-height:1.55; font-weight:700; }
     .lead { font-size:26px; max-width:620px; }
+    .eyebrow { margin:0 0 8px; color:var(--route); text-transform:uppercase; font-size:12px; font-weight:900; }
     .stamp { border:1px solid currentColor; border-radius:999px; padding:6px 9px; font-size:12px; font-weight:900; text-transform:uppercase; display:inline-block; color:var(--sea); }
     .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
     .primary { background:var(--ochre); border:2px solid var(--ink); box-shadow:3px 3px 0 rgba(29,37,32,.25); }
-    .card { background:rgba(255,250,238,.78); border:1px solid var(--ink); border-radius:8px; box-shadow:4px 4px 0 rgba(29,37,32,.18); padding:18px; }
-    .map { min-height:430px; position:relative; background:linear-gradient(45deg,rgba(31,111,120,.12) 25%,transparent 25%) 0 0/24px 24px,linear-gradient(-45deg,rgba(31,111,120,.1) 25%,transparent 25%) 0 0/24px 24px,#dce4d3; overflow:hidden; }
-    .pin { position:absolute; border:2px solid var(--ink); background:var(--route); color:white; font-size:12px; font-weight:900; padding:5px 8px; border-radius:5px; }
+    .sea { background:var(--sea); color:white; border:2px solid var(--ink); }
+    .card { background:rgba(255,250,238,.82); border:1px solid var(--ink); border-radius:8px; box-shadow:4px 4px 0 rgba(29,37,32,.18); padding:18px; }
+    #map { min-height:430px; border:1px solid var(--ink); border-radius:8px; box-shadow:4px 4px 0 rgba(29,37,32,.18); overflow:hidden; }
+    .leaflet-popup-content-wrapper,.leaflet-popup-tip { background:var(--white); color:var(--ink); }
+    .leaflet-popup-content { font-family:"Trebuchet MS",Arial,sans-serif; }
+    .leaflet-popup-content strong { display:block; margin-bottom:4px; }
     section { padding:34px 0; }
     .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
     .two { grid-template-columns:repeat(2,1fr); }
-    input, select, textarea { width:100%; min-height:40px; border:1px solid var(--ink); background:rgba(255,255,255,.75); border-radius:5px; padding:9px; font:inherit; font-weight:700; }
+    .four { grid-template-columns:repeat(4,1fr); }
+    input,select,textarea { width:100%; min-height:40px; border:1px solid var(--ink); background:rgba(255,255,255,.78); border-radius:5px; padding:9px; font:inherit; font-weight:700; }
+    textarea { resize:vertical; }
     label { display:grid; gap:5px; font-weight:900; font-size:14px; }
+    .form-stack { display:grid; gap:13px; }
     .walk { display:grid; gap:12px; margin-bottom:16px; }
     .meta { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; font-size:14px; font-weight:900; }
     .tag { border:1px solid var(--ink); background:rgba(255,255,255,.6); padding:5px 8px; border-radius:5px; display:inline-block; margin:3px; font-size:12px; font-weight:900; }
+    .status { min-height:22px; color:var(--muted); font-size:13px; font-weight:900; }
+    .notice { border:1px solid var(--ink); background:rgba(216,166,70,.24); padding:11px; font-size:13px; font-weight:900; line-height:1.45; }
+    .stat { border:1px solid var(--ink); background:rgba(255,255,255,.65); padding:12px; font-weight:900; }
     table { width:100%; border-collapse:collapse; font-size:14px; font-weight:800; }
-    th, td { padding:8px; border-bottom:1px solid rgba(29,37,32,.25); text-align:left; }
-    footer { border-top:2px solid var(--ink); padding:24px 0; color:var(--muted); }
-    @media (max-width:850px){ .hero,.grid,.two,.meta{grid-template-columns:1fr;} h1{font-size:58px;} }
+    th,td { padding:8px; border-bottom:1px solid rgba(29,37,32,.25); text-align:left; }
+    [data-admin-only] { display:none; }
+    body.admin-mode [data-admin-only] { display:block; }
+    .role-note { color:var(--muted); font-size:12px; font-weight:900; }
+    @media (max-width:900px) { .hero,.grid,.two,.four,.meta { grid-template-columns:1fr; } h1 { font-size:58px; } header { align-items:flex-start; } .header-tools { width:100%; } #map { min-height:360px; } }
   </style>
 </head>
 <body>
 <main>
-  <header><div class="brand">Perry</div><nav><a href="#walks">Walks</a><a href="#people">People</a><a href="#propose">Propose</a><a href="#organizer">Organizer</a><a href="#admin">Admin</a></nav></header>
-  <div class="hero"><div><span class="stamp">Invite only</span><h1>Perry</h1><p class="lead">A private network for organizing and joining walking salons.</p><div class="actions"><a class="button primary" href="#walks">Browse walks</a><a class="button" href="#people">Find people</a><a class="button" href="#propose">Propose a walk</a></div></div><div class="card map"><span class="pin" style="left:18%;top:30%">Western Massachusetts</span><span class="pin" style="left:45%;top:48%;background:var(--sea)">Croatia</span><span class="pin" style="left:66%;top:66%;background:var(--ochre);color:var(--ink)">Shikoku</span><div class="card" style="position:absolute;left:18px;right:18px;bottom:18px"><b>Field notes</b><p>Small groups gathered around a place, a route, and a shared conversation.</p></div></div></div>
-  <section><h2>Member Access</h2><div class="grid"><div class="card"><h3>Magic Link Login</h3><label>Email<input placeholder="you@example.com"></label><p><a class="button primary">Send magic link</a></p></div><div class="card"><h3>Onboarding</h3><p>Name, age range, location status, visibility controls, optional bio, and private contact preferences.</p></div><div class="card"><h3>Invite Chain</h3><p>Seeded members receive one invite credit. Invites are single-use and visible to admins.</p></div></div></section>
-  <section id="walks"><h2>Walks</h2><div class="card walk"><span class="stamp">Critical mass</span><h3>Library Futures Walk</h3><p>A four-day walk between town libraries, reading rooms, and river paths.</p><div class="meta"><span>Western Massachusetts</span><span>Spring 2027</span><span>5/8 approved</span><span>Draft Route</span></div></div><div class="card walk"><span class="stamp">Gathering interest</span><h3>Croatia Coastal Questions</h3><p>An exploratory coastal walk around care, pressure, and beauty in popular places.</p><div class="meta"><span>Dalmatian Coast</span><span>Sep-Nov 2027</span><span>2/10 approved</span><span>Concept</span></div></div></section>
-  <section id="people"><h2>People</h2><div class="grid"><div class="card"><h3>Mara Vale</h3><p>Portland, Oregon. Editor, patient walker, and collector of local histories.</p><span class="tag">libraries</span><span class="tag">architecture</span><span class="tag">rivers</span></div><div class="card"><h3>Jon Bell</h3><p>Nomadic. Maps person. Likes slow routes and older infrastructure.</p><span class="tag">cartography</span><span class="tag">rail</span></div><div class="card"><h3>Anika Rao</h3><p>Cambridge, Massachusetts. Works between libraries and civic technology.</p><span class="tag">memory</span><span class="tag">civic tech</span></div></div></section>
-  <section id="propose"><h2>Propose</h2><div class="grid two"><div class="card"><h3>Walk Proposal</h3><label>Title<input placeholder="Library Futures Walk"></label><label>Full description<textarea rows="5"></textarea></label><label>Organizer framework<textarea rows="5"></textarea></label></div><div class="card"><h3>AI Draft Assistant</h3><p>AI-assisted draft - please review for accuracy.</p><label>Known details<textarea rows="5">Western Massachusetts, spring 2027, libraries, civic memory, 8-12 miles per day</textarea></label><p><a class="button primary">Generate editable draft</a></p></div></div></section>
-  <section id="organizer"><h2>Organizer</h2><div class="card"><h3>Approval Dashboard</h3><p>Approved: 5. Open slots: 3. Critical mass reached.</p><table><tr><th>Participant</th><th>Email</th><th>Status</th><th>Controls</th></tr><tr><td>Mara Vale</td><td>member1@example.com</td><td>approved</td><td>Approve</td></tr><tr><td>Jon Bell</td><td>member2@example.com</td><td>approved</td><td>Waitlist</td></tr></table></div></section>
-  <section id="admin"><h2>Admin</h2><div class="grid"><div class="card"><h3>Authorized Emails</h3><textarea rows="5">mara@example.com
+  <header>
+    <a class="brand" href="#top" aria-label="Perry home">Perry</a>
+    <div class="header-tools">
+      <nav>
+        <a href="#walks">Walks</a>
+        <a href="#people">People</a>
+        <a href="#propose">Propose</a>
+        <a href="#organizer">Organizer</a>
+        <a href="#admin" data-admin-only>Admin</a>
+      </nav>
+      <div>
+        <div class="role-switch" aria-label="Preview role">
+          <button id="user-role" class="active" type="button">User</button>
+          <button id="admin-role" type="button">Admin</button>
+        </div>
+        <div class="role-note">Preview role</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero" id="top">
+    <div>
+      <span class="stamp">Invite only</span>
+      <h1>Perry</h1>
+      <p class="lead">A private network for organizing and joining walking salons.</p>
+      <div class="actions">
+        <a class="button primary" href="#walks">Browse walks</a>
+        <a class="button" href="#people">Find people</a>
+        <a class="button" href="#propose">Propose a walk</a>
+      </div>
+    </div>
+    <div>
+      <p class="eyebrow">Walk map</p>
+      <div id="map" aria-label="Map of proposed Perry walks"></div>
+    </div>
+  </div>
+
+  <section>
+    <p class="eyebrow">Access</p>
+    <h2>Member Access</h2>
+    <div class="grid">
+      <div class="card"><h3>Magic Link Login</h3><div class="form-stack"><label>Email<input placeholder="you@example.com" type="email"></label><button class="button primary" type="button">Send magic link</button></div></div>
+      <div class="card"><h3>Onboarding</h3><p>Name, age range, location status, visibility controls, optional bio, and private contact preferences.</p></div>
+      <div class="card"><h3>Invite Chain</h3><p>Seeded members receive one invite credit. Invites are single-use and visible to admins.</p></div>
+    </div>
+  </section>
+
+  <section id="walks">
+    <p class="eyebrow">Discovery</p>
+    <h2>Walks</h2>
+    <div class="card walk"><span class="stamp">Critical mass</span><h3>Library Futures Walk</h3><p>A four-day walk between town libraries, reading rooms, and river paths.</p><div class="meta"><span>Western Massachusetts</span><span>Spring 2027</span><span>5/8 approved</span><span>Draft Route</span></div></div>
+    <div class="card walk"><span class="stamp">Gathering interest</span><h3>Croatia Coastal Questions</h3><p>An exploratory coastal walk around care, pressure, and beauty in popular places.</p><div class="meta"><span>Dalmatian Coast</span><span>Sep-Nov 2027</span><span>2/10 approved</span><span>Concept</span></div></div>
+    <div class="card walk"><span class="stamp">Idea</span><h3>Shikoku Slow Study</h3><p>A future walking salon inspired by pilgrimage routes and slow observation.</p><div class="meta"><span>Shikoku, Japan</span><span>Timing TBD</span><span>1/7 approved</span><span>Concept</span></div></div>
+  </section>
+
+  <section id="people">
+    <p class="eyebrow">Directory</p>
+    <h2>People</h2>
+    <div class="grid">
+      <div class="card"><h3>Mara Vale</h3><p>Portland, Oregon. Editor, patient walker, and collector of local histories.</p><span class="tag">libraries</span><span class="tag">architecture</span><span class="tag">rivers</span></div>
+      <div class="card"><h3>Jon Bell</h3><p>Nomadic. Maps person. Likes slow routes and older infrastructure.</p><span class="tag">cartography</span><span class="tag">rail</span></div>
+      <div class="card"><h3>Anika Rao</h3><p>Cambridge, Massachusetts. Works between libraries and civic technology.</p><span class="tag">memory</span><span class="tag">civic tech</span></div>
+    </div>
+  </section>
+
+  <section id="propose">
+    <p class="eyebrow">New walk</p>
+    <h2>Propose</h2>
+    <div class="grid two">
+      <div class="card">
+        <h3>Walk Proposal</h3>
+        <div class="form-stack">
+          <label>Title<input id="walk-title" value="Library Futures Walk"></label>
+          <label>Location or region<input id="walk-location" value="Western Massachusetts"></label>
+          <label>Proposed timing<input id="walk-timing" value="Spring 2027"></label>
+          <label>Daily mileage<input id="walk-mileage" value="8-12 miles"></label>
+          <label>Topics<input id="walk-topics" value="libraries, civic memory, public rooms"></label>
+          <label>Full description<textarea id="proposal-description" rows="7" placeholder="Why this walk exists and what participants will experience."></textarea></label>
+        </div>
+      </div>
+      <div class="card">
+        <h3>AI Draft Assistant</h3>
+        <div class="form-stack">
+          <div class="notice">AI-assisted draft. Review every detail before publishing.</div>
+          <label>Short summary<textarea id="draft-summary" rows="3"></textarea></label>
+          <label>Daily rhythm<textarea id="draft-rhythm" rows="4"></textarea></label>
+          <label>Conversation structure<textarea id="draft-conversation" rows="4"></textarea></label>
+          <label>Participant expectations<textarea id="draft-expectations" rows="4"></textarea></label>
+          <button class="button sea" id="generate-draft" type="button">Generate draft</button>
+          <div class="status" id="ai-status" role="status"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="organizer">
+    <p class="eyebrow">Walk management</p>
+    <h2>Organizer</h2>
+    <div class="card">
+      <h3>Approval Dashboard</h3>
+      <div class="grid four">
+        <div class="stat">Approved: 5</div><div class="stat">Open slots: 3</div><div class="stat">Minimum: 5</div><div class="stat">Critical mass reached</div>
+      </div>
+      <div style="overflow-x:auto;margin-top:16px">
+        <table><tr><th>Participant</th><th>Email</th><th>Status</th><th>Controls</th></tr><tr><td>Mara Vale</td><td>member1@example.com</td><td>approved</td><td><button class="button">Approve</button></td></tr><tr><td>Jon Bell</td><td>member2@example.com</td><td>approved</td><td><button class="button">Waitlist</button></td></tr></table>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin" data-admin-only>
+    <p class="eyebrow">Private controls</p>
+    <h2>Admin</h2>
+    <div class="grid two">
+      <div class="card"><h3>Authorized Emails</h3><textarea rows="6">mara@example.com
 jon@example.com
-anika@example.com</textarea></div><div class="card"><h3>Invites</h3><p>PERRY-MAP-27 pending<br>PERRY-RIVER-09 accepted</p></div><div class="card"><h3>Security Model</h3><p>Invite-only access, server-side contact visibility, organizer approvals, and planning documents after takeoff.</p></div></div></section>
-  <footer>Perry keeps the branding quiet and lets walks, people, maps, and lists carry the experience.</footer>
+anika@example.com</textarea><p><button class="button primary" type="button">Update list</button></p></div>
+      <div class="card"><h3>Invites</h3><p>PERRY-MAP-27 pending</p><p>PERRY-RIVER-09 accepted</p><p><button class="button" type="button">Grant invite credit</button></p></div>
+    </div>
+  </section>
 </main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+  const walks = [
+    { title:"Library Futures Walk", place:"Western Massachusetts", coords:[42.37,-72.52], date:"Spring 2027", status:"Critical mass" },
+    { title:"Croatia Coastal Questions", place:"Dalmatian Coast, Croatia", coords:[43.51,16.44], date:"Sep-Nov 2027", status:"Gathering interest" },
+    { title:"Shikoku Slow Study", place:"Shikoku, Japan", coords:[33.75,133.50], date:"Timing TBD", status:"Idea" }
+  ];
+
+  const map = L.map("map", { scrollWheelZoom:false }).setView([35,25], 2);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  const markers = walks.map((walk) => L.marker(walk.coords).addTo(map).bindPopup("<strong>" + walk.title + "</strong>" + walk.place + "<br>" + walk.date + "<br>" + walk.status));
+  const group = L.featureGroup(markers);
+  map.fitBounds(group.getBounds().pad(.28));
+  setTimeout(() => map.invalidateSize(), 100);
+
+  const userButton = document.getElementById("user-role");
+  const adminButton = document.getElementById("admin-role");
+  function setRole(role) {
+    const isAdmin = role === "admin";
+    document.body.classList.toggle("admin-mode", isAdmin);
+    userButton.classList.toggle("active", !isAdmin);
+    adminButton.classList.toggle("active", isAdmin);
+    localStorage.setItem("perryRole", role);
+  }
+  userButton.addEventListener("click", () => setRole("user"));
+  adminButton.addEventListener("click", () => setRole("admin"));
+  setRole(localStorage.getItem("perryRole") === "admin" ? "admin" : "user");
+
+  const generateButton = document.getElementById("generate-draft");
+  const aiStatus = document.getElementById("ai-status");
+  generateButton.addEventListener("click", async () => {
+    generateButton.disabled = true;
+    aiStatus.textContent = "Drafting...";
+    const input = {
+      title: document.getElementById("walk-title").value,
+      location: document.getElementById("walk-location").value,
+      timing: document.getElementById("walk-timing").value,
+      mileage: document.getElementById("walk-mileage").value,
+      topics: document.getElementById("walk-topics").value
+    };
+    try {
+      const response = await fetch("/api/ai-draft", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify(input)
+      });
+      const draft = await response.json();
+      if (!response.ok) throw new Error(draft.error || "Draft request failed");
+      document.getElementById("walk-title").value = draft.title || input.title;
+      document.getElementById("draft-summary").value = draft.summary || "";
+      document.getElementById("proposal-description").value = draft.description || "";
+      document.getElementById("draft-rhythm").value = draft.dailyRhythm || "";
+      document.getElementById("draft-conversation").value = draft.conversation || "";
+      document.getElementById("draft-expectations").value = draft.expectations || "";
+      aiStatus.textContent = draft.source === "openai" ? "AI draft ready." : "Sample draft ready. Add OPENAI_API_KEY in Vercel for live AI.";
+    } catch (error) {
+      aiStatus.textContent = error.message || "Could not generate a draft.";
+    } finally {
+      generateButton.disabled = false;
+    }
+  });
+</script>
 </body>
 </html>
