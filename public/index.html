@@ -130,29 +130,16 @@
   <section id="propose">
     <p class="eyebrow">New walk</p>
     <h2>Propose</h2>
-    <div class="grid two">
-      <div class="card">
-        <h3>Walk Proposal</h3>
-        <div class="form-stack">
-          <label>Title<input id="walk-title" value="Library Futures Walk"></label>
-          <label>Location or region<input id="walk-location" value="Western Massachusetts"></label>
-          <label>Proposed timing<input id="walk-timing" value="Spring 2027"></label>
-          <label>Daily mileage<input id="walk-mileage" value="8-12 miles"></label>
-          <label>Topics<input id="walk-topics" value="libraries, civic memory, public rooms"></label>
-          <label>Full description<textarea id="proposal-description" rows="7" placeholder="Why this walk exists and what participants will experience."></textarea></label>
-        </div>
-      </div>
-      <div class="card">
-        <h3>AI Draft Assistant</h3>
-        <div class="form-stack">
-          <div class="notice">AI-assisted draft. Review every detail before publishing.</div>
-          <label>Short summary<textarea id="draft-summary" rows="3"></textarea></label>
-          <label>Daily rhythm<textarea id="draft-rhythm" rows="4"></textarea></label>
-          <label>Conversation structure<textarea id="draft-conversation" rows="4"></textarea></label>
-          <label>Participant expectations<textarea id="draft-expectations" rows="4"></textarea></label>
-          <button class="button sea" id="generate-draft" type="button">Generate draft</button>
-          <div class="status" id="ai-status" role="status"></div>
-        </div>
+    <div class="card">
+      <h3>Walk Proposal</h3>
+      <div class="form-stack">
+        <label>Title<input id="walk-title" value="Library Futures Walk"></label>
+        <label>Location or region<input id="walk-location" value="Western Massachusetts"></label>
+        <label>Proposed timing<input id="walk-timing" value="Spring 2027"></label>
+        <label>Daily mileage<input id="walk-mileage" value="8-12 miles"></label>
+        <label>Topics<input id="walk-topics" value="libraries, civic memory, public rooms"></label>
+        <label>Full description<textarea id="proposal-description" rows="7" placeholder="Why this walk exists and what participants will experience."></textarea></label>
+        <button class="button primary" type="button">Save proposal</button>
       </div>
     </div>
   </section>
@@ -215,39 +202,6 @@ anika@example.com</textarea><p><button class="button primary" type="button">Upda
   adminButton.addEventListener("click", () => setRole("admin"));
   setRole(localStorage.getItem("perryRole") === "admin" ? "admin" : "user");
 
-  const generateButton = document.getElementById("generate-draft");
-  const aiStatus = document.getElementById("ai-status");
-  generateButton.addEventListener("click", async () => {
-    generateButton.disabled = true;
-    aiStatus.textContent = "Drafting...";
-    const input = {
-      title: document.getElementById("walk-title").value,
-      location: document.getElementById("walk-location").value,
-      timing: document.getElementById("walk-timing").value,
-      mileage: document.getElementById("walk-mileage").value,
-      topics: document.getElementById("walk-topics").value
-    };
-    try {
-      const response = await fetch("/api/ai-draft", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify(input)
-      });
-      const draft = await response.json();
-      if (!response.ok) throw new Error(draft.error || "Draft request failed");
-      document.getElementById("walk-title").value = draft.title || input.title;
-      document.getElementById("draft-summary").value = draft.summary || "";
-      document.getElementById("proposal-description").value = draft.description || "";
-      document.getElementById("draft-rhythm").value = draft.dailyRhythm || "";
-      document.getElementById("draft-conversation").value = draft.conversation || "";
-      document.getElementById("draft-expectations").value = draft.expectations || "";
-      aiStatus.textContent = draft.source === "openai" ? "AI draft ready." : "Sample draft ready. Add OPENAI_API_KEY in Vercel for live AI.";
-    } catch (error) {
-      aiStatus.textContent = error.message || "Could not generate a draft.";
-    } finally {
-      generateButton.disabled = false;
-    }
-  });
 </script>
 </body>
 </html>
